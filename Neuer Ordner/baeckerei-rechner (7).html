@@ -1,0 +1,2360 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="color-scheme" content="light">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Professioneller Rechner für Ihren Backbetrieb">
+    <meta name="theme-color" content="#2C3E50">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bäckerei">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%238B7355' width='512' height='512'/%3E%3Ctext x='256' y='350' font-size='280' text-anchor='middle' fill='white'%3E🍞%3C/text%3E%3C/svg%3E">
+    
+    <title>Bäckerei Rezeptrechner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: light;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Merriweather', Georgia, serif;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body.rtl {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        body.rtl .header {
+            direction: rtl;
+        }
+        
+        body.rtl .header > div {
+            flex-direction: row-reverse;
+        }
+        
+        body.rtl .calculator-box {
+            direction: rtl;
+        }
+        
+        body.rtl .slider-item {
+            direction: rtl;
+        }
+        
+        body.rtl .slider-label {
+            flex-direction: row-reverse;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2C3E50 0%, #1A252F 100%);
+            color: #FFFFFF;
+            padding: 1.5rem 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.25rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .header p {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            padding-bottom: 2rem;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin: 1rem 0 1.5rem 0;
+        }
+
+        .category-btn {
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: #C5CAE9;
+            color: #000000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100px;
+        }
+
+        .category-btn.active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            background: #9FA8DA;
+        }
+
+        .category-btn:active {
+            transform: scale(0.95);
+        }
+
+        .recipe-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 3px solid;
+        }
+
+        .recipe-selector label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            font-size: 1rem;
+            gap: 0.5rem;
+        }
+
+        .recipe-selector select {
+            width: 100%;
+            padding: 0.875rem;
+            border-radius: 8px;
+            border: 2px solid;
+            font-size: 1rem;
+            background: white;
+            font-weight: 600;
+            font-family: inherit;
+        }
+
+        .calculator-box {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            border-left: 6px solid #ccc;
+        }
+
+        .calculator-box h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .quick-select {
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-select p {
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .quick-select-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: #D2691E;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 1rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .quick-btn:active {
+            transform: scale(0.95);
+        }
+
+        .input-section {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 2px solid;
+        }
+
+        .slider-item {
+            margin-bottom: 1rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .slider-label span:first-child {
+            font-weight: 600;
+        }
+
+        .slider-value {
+            padding: 0.125rem 0.75rem;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 3px solid #8B4513;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 3px solid #8B4513;
+            border: none;
+        }
+
+        .results-box {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .results-box h3 {
+            font-weight: bold;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        .ingredient-item span:last-child {
+            font-weight: bold;
+        }
+
+        .total-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .warning-box {
+            background: #FFF3CD;
+            border: 2px solid #FF8C00;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #856404;
+        }
+
+        .dev-message {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .dev-message .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .dev-message h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #8B4513;
+        }
+
+        .dev-message p {
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin: 0;">Bäckerei Rezeptrechner</h1>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="install-btn" class="hidden" style="
+                    padding: 0.5rem 1rem;
+                    border: 2px solid white;
+                    border-radius: 6px;
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.3rem;
+                " onclick="installApp()">
+                    📥 <span>App installieren</span>
+                </button>
+                <select id="language-select" onchange="changeLanguage()" style="
+                    padding: 0.5rem;
+                    border: 2px solid white;
+                    border-radius: 6px;
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                ">
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="tr">🇹🇷 TR</option>
+                    <option value="fa">🇦🇫 FA</option>
+                </select>
+            </div>
+        </div>
+        <p>Professioneller Rechner für Ihren Backbetrieb</p>
+    </div>
+
+    <div class="container">
+        <!-- Category Selection -->
+        <div style="
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+        ">
+            <button class="category-btn" data-category="tagesplanung" style="grid-column: 1 / -1;" onclick="selectCategory('tagesplanung')">
+                <span style="font-size: 2rem;">📅</span>
+                <span>Tagesplanung</span>
+            </button>
+            <button class="category-btn active" data-category="brot" onclick="selectCategory('brot')">
+                <span style="font-size: 2rem;">🍞</span>
+                <span>Brot</span>
+            </button>
+            <button class="category-btn" data-category="broetchen" onclick="selectCategory('broetchen')">
+                <span style="font-size: 2rem;">🥖</span>
+                <span>Brötchen</span>
+            </button>
+            <button class="category-btn" data-category="plunder" onclick="selectCategory('plunder')">
+                <span style="font-size: 2rem;">🥐</span>
+                <span>Plunderteig</span>
+            </button>
+            <button class="category-btn" data-category="kuchen" onclick="selectCategory('kuchen')">
+                <span style="font-size: 2rem;">🧁</span>
+                <span>Kuchen</span>
+            </button>
+            <button class="category-btn" data-category="eigene" style="grid-column: 1 / -1;" onclick="selectCategory('eigene')">
+                <span style="font-size: 2rem;">📝</span>
+                <span>Eigene Rezepte</span>
+            </button>
+        </div>
+
+        <!-- Recipe Selector -->
+        <div id="recipeSelector" class="hidden">
+            <h2 id="category-title" style="text-align: center; margin-bottom: 1rem; color: white; font-size: 1.5rem;"></h2>
+            
+            <div id="recipe-buttons" style="
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            ">
+                <!-- Recipe buttons will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Platzteig Calculator -->
+        <div id="platzteig-calc" class="calculator-box hidden">
+            <h2 style="color: #D2691E;">Platzteig Rechner</h2>
+            
+            <div class="quick-select">
+                <p>Schnellauswahl:</p>
+                <div class="quick-select-buttons">
+                    <button class="quick-btn" onclick="quickSelect('mo-mi')">Mo-Mi</button>
+                    <button class="quick-btn" onclick="quickSelect('do')">Do</button>
+                    <button class="quick-btn" onclick="quickSelect('fr')">Fr</button>
+                </div>
+            </div>
+
+            <div class="input-section" style="background: #FFF8E7; border-color: #DEB887;">
+                <h3 style="font-weight: bold; margin-bottom: 1rem; color: #8B4513;">Platzteig ohne</h3>
+                
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">600g</span>
+                        <span class="slider-value" style="background: #D2691E;" id="ohne600-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="50" value="0" id="ohne600" oninput="updateCalculations()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">800g</span>
+                        <span class="slider-value" style="background: #D2691E;" id="ohne800-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="50" value="0" id="ohne800" oninput="updateCalculations()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">2100g</span>
+                        <span class="slider-value" style="background: #D2691E;" id="ohne2100-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="10" value="0" id="ohne2100" oninput="updateCalculations()">
+                </div>
+            </div>
+
+            <div class="input-section" style="background: #FFF0E5; border-color: #CD853F;">
+                <h3 style="font-weight: bold; margin-bottom: 1rem; color: #8B4513;">Platzteig mit</h3>
+                
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">600g</span>
+                        <span class="slider-value" style="background: #CD853F;" id="mit600-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="50" value="0" id="mit600" oninput="updateCalculations()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">800g</span>
+                        <span class="slider-value" style="background: #CD853F;" id="mit800-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="50" value="0" id="mit800" oninput="updateCalculations()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">2400g</span>
+                        <span class="slider-value" style="background: #CD853F;" id="mit2400-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="10" value="0" id="mit2400" oninput="updateCalculations()">
+                </div>
+            </div>
+
+            <div id="platzteig-warning" class="warning-box hidden">
+                <strong>⚠️ Achtung:</strong> Teigmenge über 180kg!
+            </div>
+
+            <div class="results-box">
+                <h3>Zutaten</h3>
+                <div id="platzteig-results"></div>
+            </div>
+        </div>
+
+        <!-- Roggenbrot Calculator -->
+        <div id="roggenbrot-calc" class="calculator-box hidden">
+            <h2 style="color: #8B4513;">Roggenbrot Rechner</h2>
+            
+            <div class="input-section" style="background: #FFF8E7; border-color: #DEB887;">
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">Anzahl Kästen (à 2 Brote)</span>
+                        <span class="slider-value" style="background: #8B4513;" id="roggen-kaesten-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="50" value="0" id="roggen-kaesten" oninput="updateCalculations()">
+                </div>
+                <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem; font-style: italic;">
+                    1 Kasten = 2 Brote à 1650g (3,33kg Teig)
+                </p>
+            </div>
+
+            <div class="results-box">
+                <h3>Zutaten</h3>
+                <div id="roggenbrot-results"></div>
+            </div>
+        </div>
+
+        <!-- Dinkelbrötchen Calculator -->
+        <div id="dinkelbroetchen-calc" class="calculator-box hidden">
+            <h2 style="color: #DAA520;">Dinkelbrötchen Rechner</h2>
+            
+            <div class="input-section" style="background: #FFF8E7; border-color: #DEB887;">
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #654321;">Anzahl Brötchen (80g/Stk)</span>
+                        <span class="slider-value" style="background: #DAA520;" id="dinkel-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="500" value="0" id="dinkel" oninput="updateCalculations()">
+                </div>
+            </div>
+
+            <div class="results-box" style="background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);">
+                <h3>Zutaten</h3>
+                <div id="dinkelbroetchen-results"></div>
+            </div>
+        </div>
+
+        <!-- Development Message -->
+        <div id="dev-message" class="dev-message hidden">
+            <div class="icon">🚧</div>
+            <h3>In Entwicklung</h3>
+            <p>Dieses Rezept wird demnächst verfügbar sein.</p>
+        </div>
+
+        <!-- Tagesplanung -->
+        <div id="tagesplanung-view" class="calculator-box hidden">
+            <h2 style="color: #FF6B6B;">📅 Tagesplanung</h2>
+            
+            <div style="background: #FFF5F5; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #FFE0E0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-weight: bold; color: #FF6B6B;">Datum:</span>
+                    <input type="date" id="tagesplanung-datum" style="
+                        padding: 0.5rem;
+                        border: 2px solid #FF6B6B;
+                        border-radius: 6px;
+                        font-family: inherit;
+                    ">
+                </div>
+            </div>
+
+            <button class="quick-btn" style="background: #FF6B6B; margin-bottom: 1rem;" onclick="showProduktAuswahl()">
+                + Produkt hinzufügen
+            </button>
+
+            <div id="tagesplanung-liste" style="margin-bottom: 1.5rem;">
+                <!-- Produkte werden hier angezeigt -->
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <button class="quick-btn" style="background: #4CAF50;" onclick="showZusammenfassung()">
+                    📊 Zusammenfassung
+                </button>
+                <button class="quick-btn" style="background: #FF8C00;" onclick="clearTagesplanung()">
+                    🗑️ Zurücksetzen
+                </button>
+            </div>
+        </div>
+
+        <!-- Produkt Auswahl Modal -->
+        <div id="produkt-auswahl-modal" class="calculator-box hidden">
+            <h2 style="color: #FF6B6B;">Produkt auswählen</h2>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #FF6B6B;">
+                    Rezept:
+                </label>
+                <select id="produkt-rezept-select" style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #FF6B6B;
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    font-family: inherit;
+                    background: white;
+                ">
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #FF6B6B;">
+                    Anzahl:
+                </label>
+                <input type="number" id="produkt-anzahl" min="1" value="10" style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #FF6B6B;
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    font-family: inherit;
+                ">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <button class="quick-btn" style="background: #4CAF50;" onclick="addProduktToTagesplanung()">
+                    Hinzufügen
+                </button>
+                <button class="quick-btn" style="background: #999;" onclick="closeProduktAuswahl()">
+                    Abbrechen
+                </button>
+            </div>
+        </div>
+
+        <!-- Zusammenfassung Modal -->
+        <div id="zusammenfassung-modal" class="calculator-box hidden">
+            <h2 style="color: #4CAF50;">📊 Zusammenfassung</h2>
+            
+            <div style="background: #F0FFF0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #90EE90;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: bold;">Datum:</span>
+                    <span id="zusammenfassung-datum"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: bold;">Positionen:</span>
+                    <span id="zusammenfassung-produkte"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold;">Gesamtgewicht:</span>
+                    <span id="zusammenfassung-gewicht" style="color: #4CAF50; font-size: 1.2rem;"></span>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 0.75rem; color: #4CAF50;">📦 Tagesproduktion:</h3>
+            <div id="zusammenfassung-produktion" style="margin-bottom: 1.5rem;"></div>
+
+            <h3 style="margin-bottom: 0.75rem; color: #4CAF50;">🛒 Einkaufsliste:</h3>
+            <div id="zusammenfassung-zutaten" style="margin-bottom: 1.5rem;"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <button class="quick-btn" style="background: #4169E1;" onclick="exportZusammenfassung()">
+                    📥 Exportieren
+                </button>
+                <button class="quick-btn" style="background: #999;" onclick="closeZusammenfassung()">
+                    Schließen
+                </button>
+            </div>
+        </div>
+
+        <!-- Eigene Rezepte Manager -->
+        <div id="eigene-rezepte-manager" class="calculator-box hidden">
+            <h2 style="color: #2C3E50;">Eigene Rezepte</h2>
+            
+            <button class="quick-btn" style="background: #4A90E2; margin-bottom: 0.75rem;" onclick="showCreateRecipeForm()">
+                + Neues Rezept erstellen
+            </button>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <button class="quick-btn" style="background: #4169E1;" onclick="exportAllRecipes()">
+                    📥 Alle exportieren
+                </button>
+                <button class="quick-btn" style="background: #FF8C00;" onclick="importRecipes()">
+                    📤 Importieren
+                </button>
+            </div>
+
+            <p style="text-align: center; color: #666; padding: 2rem; line-height: 1.6;">
+                Erstelle deine eigenen Rezepte und finde sie dann in den entsprechenden Kategorien.<br><br>
+                <strong>So geht's:</strong><br>
+                1. Klicke auf "+ Neues Rezept erstellen"<br>
+                2. Wähle die Kategorie (z.B. Brot, Brötchen)<br>
+                3. Gib dein Rezept ein<br>
+                4. Finde es dann in der gewählten Kategorie!<br><br>
+                <strong>💡 Tipp:</strong> Exportiere regelmäßig als Backup!
+            </p>
+        </div>
+
+        <!-- Import File Input (hidden) -->
+        <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+
+        <!-- Eigenes Rezept erstellen/bearbeiten -->
+        <div id="rezept-form" class="calculator-box hidden">
+            <h2 style="color: #2C3E50;" id="rezept-form-titel">Rezept erstellen</h2>
+            
+            <div class="input-section" style="background: #F0FFF0; border-color: #90EE90;">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #4A90E2;">
+                        Kategorie:
+                    </label>
+                    <select id="rezept-kategorie" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #4A90E2;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-family: inherit;
+                        background: white;
+                    ">
+                        <option value="brot">🌾 Brot</option>
+                        <option value="broetchen">☕ Brötchen</option>
+                        <option value="plunder">🥐 Plunderteig</option>
+                        <option value="kuchen">🧁 Kuchen</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #4A90E2;">
+                        Rezeptname:
+                    </label>
+                    <input type="text" id="rezept-name" placeholder="z.B. Kassler" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #4A90E2;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-family: inherit;
+                    ">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #4A90E2;">
+                        Einheit:
+                    </label>
+                    <input type="text" id="rezept-einheit" placeholder="z.B. Brote, Kästen, Stück" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #4A90E2;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-family: inherit;
+                    ">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #4A90E2;">
+                        Teiggewicht pro Einheit (kg):
+                    </label>
+                    <input type="number" step="0.01" id="rezept-gewicht" placeholder="z.B. 3.33" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #4A90E2;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-family: inherit;
+                    ">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #4A90E2;">
+                        Maximale Anzahl (Slider-Maximum):
+                    </label>
+                    <input type="number" step="1" id="rezept-max" placeholder="z.B. 100" value="100" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #4A90E2;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-family: inherit;
+                    ">
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">
+                        Wie hoch soll der Slider maximal gehen?
+                    </p>
+                </div>
+
+                <h3 style="margin: 1.5rem 0 1rem 0; color: #4A90E2;">Zutaten</h3>
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                    Gib die Zutatenmengen für dein Grundrezept ein:
+                </p>
+
+                <div id="zutaten-liste" style="margin-bottom: 1rem;">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <button class="quick-btn" style="background: #90EE90; color: #4A90E2; margin-bottom: 1rem;" onclick="addZutatInput()">
+                    + Zutat hinzufügen
+                </button>
+
+                <div style="
+                    background: #E8F5E9;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    margin-top: 1rem;
+                    border: 2px solid #4CAF50;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: #4A90E2;">Gesamtgewicht Grundrezept:</span>
+                        <span id="rezept-gesamt-anzeige" style="font-weight: bold; font-size: 1.2rem; color: #4A90E2;">0.00 kg</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+                        Wird automatisch aus den Zutaten berechnet
+                    </p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button class="quick-btn" style="flex: 1; background: #4A90E2;" onclick="saveEigenesRezept()">
+                    Speichern
+                </button>
+                <button class="quick-btn" style="flex: 1; background: #999;" onclick="cancelRezeptForm()">
+                    Abbrechen
+                </button>
+            </div>
+        </div>
+
+        <!-- Eigenes Rezept Rechner -->
+        <div id="eigenes-rezept-calc" class="calculator-box hidden">
+            <h2 style="color: #4A90E2;" id="eigenes-rezept-titel"></h2>
+            
+            <div class="input-section" style="background: #F0FFF0; border-color: #90EE90;">
+                <div class="slider-item">
+                    <div class="slider-label">
+                        <span style="color: #4A90E2;" id="eigenes-rezept-einheit-label">Anzahl</span>
+                        <span class="slider-value" style="background: #4A90E2;" id="eigenes-anzahl-value">0</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="0" id="eigenes-anzahl" oninput="calculateEigenesRezept()">
+                </div>
+            </div>
+
+            <div class="results-box" style="background: linear-gradient(135deg, #4A90E2 0%, #228B22 100%);">
+                <h3>Zutaten</h3>
+                <div id="eigenes-rezept-results"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                <button class="quick-btn" style="background: #FF8C00;" onclick="editEigenesRezept()">
+                    ✏️ Bearbeiten
+                </button>
+                <button class="quick-btn" style="background: #4169E1;" onclick="exportCurrentRecipe()">
+                    📥 Export
+                </button>
+                <button class="quick-btn" style="background: #DC143C;" onclick="deleteEigenesRezept()">
+                    Löschen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categories = {
+            tagesplanung: { color: '#FF6B6B', icon: '📅', name: 'Tagesplanung' },
+            brot: { color: '#8B7355', icon: '🍞', name: 'Brot' },
+            broetchen: { color: '#D4A574', icon: '🥖', name: 'Brötchen' },
+            plunder: { color: '#E8B86D', icon: '🥐', name: 'Plunderteig' },
+            kuchen: { color: '#DDA15E', icon: '🧁', name: 'Kuchen' }
+        };
+
+        const recipes = {
+            brot: [
+                { id: 'roggenbrot', name: 'Roggenbrot', active: true }
+            ].sort((a, b) => a.name.localeCompare(b.name)),
+            broetchen: [
+                { id: 'dinkelbroetchen', name: 'Dinkelbrötchen', active: true }
+            ].sort((a, b) => a.name.localeCompare(b.name)),
+            plunder: [
+                { id: 'platzteig', name: 'Platzteig', active: true }
+            ].sort((a, b) => a.name.localeCompare(b.name)),
+            kuchen: [],
+            eigene: []
+        };
+
+        let currentCategory = 'brot';
+        let currentRecipe = 'roggenbrot';
+        let customRecipes = {};
+        let currentCustomRecipe = null;
+        let editingRecipeId = null;
+        let tagesplanung = [];
+        let currentLanguage = 'de';
+
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+
+        // Translations
+        const translations = {
+            de: {
+                title: 'Bäckerei Rezeptrechner',
+                subtitle: 'Professioneller Rechner für Ihren Backbetrieb',
+                tagesplanung: 'Tagesplanung',
+                brot: 'Brot',
+                broetchen: 'Brötchen',
+                plunder: 'Plunderteig',
+                kuchen: 'Kuchen',
+                eigene: 'Eigene Rezepte',
+                anzahl: 'Anzahl',
+                zutaten: 'Zutaten',
+                gesamt: 'Gesamt',
+                kg: 'kg',
+                stueck: 'Stück',
+                kaesten: 'Kästen',
+                rechner: 'Rechner',
+                neuesRezept: 'Neues Rezept erstellen',
+                alleExportieren: 'Alle exportieren',
+                importieren: 'Importieren',
+                rezeptErstellen: 'Rezept erstellen',
+                rezeptBearbeiten: 'Rezept bearbeiten',
+                kategorie: 'Kategorie',
+                rezeptname: 'Rezeptname',
+                einheit: 'Einheit',
+                teiggewicht: 'Teiggewicht pro Einheit (kg)',
+                maxAnzahl: 'Maximale Anzahl (Slider-Maximum)',
+                maxAnzahlHint: 'Wie hoch soll der Slider maximal gehen?',
+                speichern: 'Speichern',
+                abbrechen: 'Abbrechen',
+                loeschen: 'Löschen',
+                bearbeiten: 'Bearbeiten',
+                export: 'Export',
+                produktHinzufuegen: 'Produkt hinzufügen',
+                zusammenfassung: 'Zusammenfassung',
+                zuruecksetzen: 'Zurücksetzen',
+                datum: 'Datum',
+                positionen: 'Positionen',
+                gesamtgewicht: 'Gesamtgewicht',
+                tagesproduktion: 'Tagesproduktion',
+                einkaufsliste: 'Einkaufsliste',
+                exportieren: 'Exportieren',
+                schliessen: 'Schließen',
+                zutatenHinzufuegen: 'Zutaten',
+                zutatHinzufuegen: '+ Zutat hinzufügen',
+                gesamtgewichtGrundrezept: 'Gesamtgewicht Grundrezept:',
+                grundrezept: 'Gib die Zutatenmengen für dein Grundrezept ein:',
+                produktAuswaehlen: 'Produkt auswählen',
+                rezept: 'Rezept',
+                hinzufuegen: 'Hinzufügen',
+                nochKeineProdukte: 'Noch keine Produkte hinzugefügt',
+                rezeptAuswahl: 'Rezept auswählen',
+                inEntwicklung: 'In Entwicklung',
+                dieseRezeptBald: 'Dieses Rezept wird demnächst verfügbar sein.'
+            },
+            tr: {
+                title: 'Fırın Tarif Hesaplayıcı',
+                subtitle: 'Fırınınız için profesyonel hesaplayıcı',
+                tagesplanung: 'Günlük Planlama',
+                brot: 'Ekmek',
+                broetchen: 'Çörek',
+                plunder: 'Poğaça Hamuru',
+                kuchen: 'Pasta',
+                eigene: 'Kendi Tariflerim',
+                anzahl: 'Miktar',
+                zutaten: 'Malzemeler',
+                gesamt: 'Toplam',
+                kg: 'kg',
+                stueck: 'Adet',
+                kaesten: 'Kutu',
+                rechner: 'Hesaplayıcı',
+                neuesRezept: 'Yeni Tarif Oluştur',
+                alleExportieren: 'Hepsini Dışa Aktar',
+                importieren: 'İçe Aktar',
+                rezeptErstellen: 'Tarif Oluştur',
+                rezeptBearbeiten: 'Tarif Düzenle',
+                kategorie: 'Kategori',
+                rezeptname: 'Tarif Adı',
+                einheit: 'Birim',
+                teiggewicht: 'Birim Başına Hamur Ağırlığı (kg)',
+                maxAnzahl: 'Maksimum Miktar',
+                maxAnzahlHint: 'Kaydırıcı ne kadar yüksek olmalı?',
+                speichern: 'Kaydet',
+                abbrechen: 'İptal',
+                loeschen: 'Sil',
+                bearbeiten: 'Düzenle',
+                export: 'Dışa Aktar',
+                produktHinzufuegen: 'Ürün Ekle',
+                zusammenfassung: 'Özet',
+                zuruecksetzen: 'Sıfırla',
+                datum: 'Tarih',
+                positionen: 'Pozisyon',
+                gesamtgewicht: 'Toplam Ağırlık',
+                tagesproduktion: 'Günlük Üretim',
+                einkaufsliste: 'Alışveriş Listesi',
+                exportieren: 'Dışa Aktar',
+                schliessen: 'Kapat',
+                zutatenHinzufuegen: 'Malzemeler',
+                zutatHinzufuegen: '+ Malzeme Ekle',
+                gesamtgewichtGrundrezept: 'Temel Tarif Toplam Ağırlığı:',
+                grundrezept: 'Temel tarifin için malzeme miktarlarını gir:',
+                produktAuswaehlen: 'Ürün Seç',
+                rezept: 'Tarif',
+                hinzufuegen: 'Ekle',
+                nochKeineProdukte: 'Henüz ürün eklenmedi',
+                rezeptAuswahl: 'Tarif Seçin',
+                inEntwicklung: 'Geliştirilme Aşamasında',
+                dieseRezeptBald: 'Bu tarif yakında mevcut olacak.'
+            },
+            fa: {
+                title: 'حساب‌گر دستور نانوایی',
+                subtitle: 'حساب‌گر حرفه‌ای برای نانوایی شما',
+                tagesplanung: 'برنامه روزانه',
+                brot: 'نان',
+                broetchen: 'نان کوچک',
+                plunder: 'خمیر شیرینی',
+                kuchen: 'کیک',
+                eigene: 'دستورهای خودم',
+                anzahl: 'تعداد',
+                zutaten: 'مواد',
+                gesamt: 'جمع',
+                kg: 'کیلو',
+                stueck: 'عدد',
+                kaesten: 'جعبه',
+                rechner: 'حساب‌گر',
+                neuesRezept: 'ایجاد دستور جدید',
+                alleExportieren: 'صادر کردن همه',
+                importieren: 'وارد کردن',
+                rezeptErstellen: 'ایجاد دستور',
+                rezeptBearbeiten: 'ویرایش دستور',
+                kategorie: 'دسته‌بندی',
+                rezeptname: 'نام دستور',
+                einheit: 'واحد',
+                teiggewicht: 'وزن خمیر به ازای هر واحد (کیلو)',
+                maxAnzahl: 'حداکثر تعداد',
+                maxAnzahlHint: 'لغزنده حداکثر تا کجا برود؟',
+                speichern: 'ذخیره',
+                abbrechen: 'لغو',
+                loeschen: 'حذف',
+                bearbeiten: 'ویرایش',
+                export: 'صادرات',
+                produktHinzufuegen: 'افزودن محصول',
+                zusammenfassung: 'خلاصه',
+                zuruecksetzen: 'بازنشانی',
+                datum: 'تاریخ',
+                positionen: 'موقعیت',
+                gesamtgewicht: 'وزن کل',
+                tagesproduktion: 'تولید روزانه',
+                einkaufsliste: 'لیست خرید',
+                exportieren: 'صادر کردن',
+                schliessen: 'بستن',
+                zutatenHinzufuegen: 'مواد',
+                zutatHinzufuegen: '+ افزودن ماده',
+                gesamtgewichtGrundrezept: 'وزن کل دستور پایه:',
+                grundrezept: 'مقدار مواد را برای دستور پایه خود وارد کنید:',
+                produktAuswaehlen: 'انتخاب محصول',
+                rezept: 'دستور',
+                hinzufuegen: 'افزودن',
+                nochKeineProdukte: 'هنوز محصولی اضافه نشده',
+                rezeptAuswahl: 'انتخاب دستور',
+                inEntwicklung: 'در حال توسعه',
+                dieseRezeptBald: 'این دستور به زودی در دسترس خواهد بود.'
+            }
+        };
+
+        // Load custom recipes from localStorage
+        function loadCustomRecipes() {
+            const saved = localStorage.getItem('baeckerei_custom_recipes');
+            if (saved) {
+                try {
+                    customRecipes = JSON.parse(saved);
+                    // Add custom recipes to their respective categories
+                    for (const [id, recipe] of Object.entries(customRecipes)) {
+                        const category = recipe.kategorie || 'brot';
+                        // Check if category exists
+                        if (recipes[category]) {
+                            if (!recipes[category].find(r => r.id === id)) {
+                                recipes[category].push({
+                                    id: id,
+                                    name: recipe.name,
+                                    active: true,
+                                    custom: true
+                                });
+                            }
+                        } else {
+                            console.warn('Unknown category:', category, 'for recipe:', recipe.name);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading custom recipes:', error);
+                    // Reset if corrupted
+                    customRecipes = {};
+                    localStorage.removeItem('baeckerei_custom_recipes');
+                }
+            }
+        }
+
+        // Save custom recipes to localStorage
+        function saveCustomRecipes() {
+            localStorage.setItem('baeckerei_custom_recipes', JSON.stringify(customRecipes));
+        }
+
+        loadCustomRecipes();
+
+        function selectCategory(category) {
+            currentCategory = category;
+            
+            // Update category buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                const btnCategory = btn.dataset.category;
+                if (btnCategory === category) {
+                    btn.classList.add('active');
+                    btn.style.background = '#9FA8DA';
+                } else {
+                    btn.style.background = '#C5CAE9';
+                }
+            });
+
+            // Update recipe selector
+            const selector = document.getElementById('recipeSelector');
+            
+            // Special handling for "tagesplanung" category
+            if (category === 'tagesplanung') {
+                document.querySelectorAll('.calculator-box, #dev-message').forEach(el => {
+                    el.classList.add('hidden');
+                });
+                
+                selector.classList.add('hidden');
+                document.getElementById('tagesplanung-view').classList.remove('hidden');
+                showTagesplanung();
+                return;
+            }
+
+            // Special handling for "eigene" category - show creation screen
+            if (category === 'eigene') {
+                document.querySelectorAll('.calculator-box, #dev-message').forEach(el => {
+                    el.classList.add('hidden');
+                });
+                
+                selector.classList.add('hidden');
+                document.getElementById('eigene-rezepte-manager').classList.remove('hidden');
+                return;
+            }
+
+            selector.classList.remove('hidden');
+            
+            // Set category title
+            const categoryNames = {
+                brot: 'Brot',
+                broetchen: 'Brötchen',
+                plunder: 'Plunderteig',
+                kuchen: 'Kuchen'
+            };
+            document.getElementById('category-title').textContent = categoryNames[category];
+            
+            // Create recipe buttons
+            const buttonContainer = document.getElementById('recipe-buttons');
+            buttonContainer.innerHTML = '';
+            
+            recipes[category].forEach(recipe => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.onclick = () => selectRecipe(recipe.id);
+                btn.disabled = !recipe.active;
+                btn.style.opacity = recipe.active ? '1' : '0.5';
+                btn.innerHTML = `<span style="font-size: 1.1rem;">${recipe.name}</span>`;
+                buttonContainer.appendChild(btn);
+            });
+
+            // Select first active recipe
+            const firstActive = recipes[category].find(r => r.active);
+            if (firstActive) {
+                currentRecipe = firstActive.id;
+                selectRecipe(firstActive.id);
+            }
+            
+            // Scroll to recipe selector
+            setTimeout(() => {
+                selector.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function selectRecipe(recipeId) {
+            if (recipeId) {
+                currentRecipe = recipeId;
+            } else {
+                recipeId = currentRecipe;
+            }
+            
+            // Hide all calculators
+            document.querySelectorAll('.calculator-box, #dev-message').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Check if it's a custom recipe
+            if (customRecipes[currentRecipe]) {
+                currentCustomRecipe = customRecipes[currentRecipe];
+                showEigenesRezeptCalc();
+                return;
+            }
+
+            // Show appropriate calculator
+            const calc = document.getElementById(currentRecipe + '-calc');
+            if (calc) {
+                calc.classList.remove('hidden');
+                
+                // Set to uniform brown color
+                const color = '#8B7355';
+                
+                // Calculator border
+                calc.style.borderLeftColor = color;
+                
+                // Heading
+                const h2 = calc.querySelector('h2');
+                if (h2) h2.style.color = color;
+                
+                // Input section
+                const inputSection = calc.querySelector('.input-section');
+                if (inputSection) {
+                    inputSection.style.background = `${color}22`;
+                    inputSection.style.borderColor = `${color}88`;
+                }
+                
+                // Results box
+                const resultsBox = calc.querySelector('.results-box');
+                if (resultsBox) {
+                    resultsBox.style.background = `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`;
+                }
+                
+                // Slider value badge
+                const sliderValues = calc.querySelectorAll('.slider-value');
+                sliderValues.forEach(sv => {
+                    sv.style.background = color;
+                });
+                
+                updateCalculations();
+                
+                // Scroll to calculator
+                setTimeout(() => {
+                    calc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            } else {
+                const devMsg = document.getElementById('dev-message');
+                devMsg.classList.remove('hidden');
+                
+                // Scroll to message
+                setTimeout(() => {
+                    devMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+
+        function quickSelect(day) {
+            const values = {
+                'mo-mi': { ohne600: 17, ohne800: 18, ohne2100: 0, mit600: 4, mit800: 25, mit2400: 1 },
+                'do': { ohne600: 30, ohne800: 20, ohne2100: 1, mit600: 8, mit800: 30, mit2400: 1 },
+                'fr': { ohne600: 35, ohne800: 25, ohne2100: 1, mit600: 10, mit800: 35, mit2400: 2 }
+            };
+
+            const v = values[day];
+            document.getElementById('ohne600').value = v.ohne600;
+            document.getElementById('ohne800').value = v.ohne800;
+            document.getElementById('ohne2100').value = v.ohne2100;
+            document.getElementById('mit600').value = v.mit600;
+            document.getElementById('mit800').value = v.mit800;
+            document.getElementById('mit2400').value = v.mit2400;
+
+            updateCalculations();
+        }
+
+        function updateCalculations() {
+            // Update slider values
+            ['ohne600', 'ohne800', 'ohne2100', 'mit600', 'mit800', 'mit2400', 'roggen-kaesten', 'dinkel'].forEach(id => {
+                const slider = document.getElementById(id);
+                const valueSpan = document.getElementById(id + '-value');
+                if (slider && valueSpan) {
+                    valueSpan.textContent = slider.value;
+                    updateSliderBackground(slider);
+                }
+            });
+
+            if (currentRecipe === 'platzteig') {
+                calculatePlatzteig();
+            } else if (currentRecipe === 'roggenbrot') {
+                calculateRoggenbrot();
+            } else if (currentRecipe === 'dinkelbroetchen') {
+                calculateDinkelbroetchen();
+            }
+        }
+
+        function updateSliderBackground(slider) {
+            const value = slider.value;
+            const max = slider.max;
+            const percentage = (value / max) * 100;
+            
+            let color = '#8B4513';
+            if (slider.id.includes('ohne')) color = '#D2691E';
+            if (slider.id.includes('mit')) color = '#CD853F';
+            if (slider.id.includes('roggen')) color = '#8B4513';
+            if (slider.id.includes('dinkel')) color = '#DAA520';
+            
+            slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percentage}%, #DEB887 ${percentage}%, #DEB887 100%)`;
+        }
+
+        function calculatePlatzteig() {
+            const ohne600 = parseFloat(document.getElementById('ohne600').value);
+            const ohne800 = parseFloat(document.getElementById('ohne800').value);
+            const ohne2100 = parseFloat(document.getElementById('ohne2100').value);
+            const mit600 = parseFloat(document.getElementById('mit600').value);
+            const mit800 = parseFloat(document.getElementById('mit800').value);
+            const mit2400 = parseFloat(document.getElementById('mit2400').value);
+
+            const totalOhne = (ohne600 * 0.6) + (ohne800 * 0.8) + (ohne2100 * 2.1);
+            const totalMit = (mit600 * 0.6) + (mit800 * 0.8) + (mit2400 * 2.4);
+            const total = totalOhne + totalMit;
+
+            const ingredients = {
+                'WM550': total * 0.56,
+                'Wasser': total * 0.16,
+                'Hefe': total * 0.028,
+                'Ei': total * 0.12,
+                'Salz': total * 0.014,
+                'Universal B-creme': total * 0.08,
+                'Zucker': total * 0.042,
+                'Hagelzucker': totalOhne * 0.05,
+                'Rosinen': totalMit * 0.18
+            };
+
+            let html = '';
+            for (const [name, value] of Object.entries(ingredients)) {
+                html += `
+                    <div class="ingredient-item">
+                        <span>${name}</span>
+                        <span>${Math.ceil(value * 100) / 100} kg</span>
+                    </div>
+                `;
+            }
+            html += `
+                <div class="total-item">
+                    <span>Gesamt</span>
+                    <span>${total.toFixed(2)} kg</span>
+                </div>
+            `;
+
+            document.getElementById('platzteig-results').innerHTML = html;
+
+            // Warning
+            const warning = document.getElementById('platzteig-warning');
+            if (total > 180) {
+                warning.classList.remove('hidden');
+            } else {
+                warning.classList.add('hidden');
+            }
+        }
+
+        function calculateRoggenbrot() {
+            const kaesten = parseFloat(document.getElementById('roggen-kaesten').value);
+            const total = kaesten * 3.333; // 1 Kasten = 3.33kg Teig
+
+            // Grundrezept: 180kg Teig = 54 Kästen
+            // WM550: 44kg, RM1150: 45kg, Wasser: 59kg, Salz: 2.4kg, BAS-T: 2.4kg, 
+            // Staback: 1kg, Frische Profi: 1kg, Hefe: 5kg, Sauerteig: 20kg
+            
+            const ingredients = {
+                'WM550': total * (44/180),
+                'RM1150': total * (45/180),
+                'Wasser': total * (59/180),
+                'Salz': total * (2.4/180),
+                'BAS-T': total * (2.4/180),
+                'Staback': total * (1/180),
+                'Frische Profi': total * (1/180),
+                'Hefe': total * (5/180),
+                'Sauerteig': total * (20/180)
+            };
+
+            let html = '';
+            for (const [name, value] of Object.entries(ingredients)) {
+                html += `
+                    <div class="ingredient-item">
+                        <span>${name}</span>
+                        <span>${Math.ceil(value * 100) / 100} kg</span>
+                    </div>
+                `;
+            }
+            html += `
+                <div class="total-item">
+                    <span>Gesamt</span>
+                    <span>${total.toFixed(2)} kg</span>
+                </div>
+            `;
+
+            document.getElementById('roggenbrot-results').innerHTML = html;
+        }
+
+        function calculateDinkelbroetchen() {
+            const count = parseFloat(document.getElementById('dinkel').value);
+            const total = count * 0.08;
+
+            const ingredients = {
+                'DM630': total * 0.625,
+                'Wasser': total * 0.35,
+                'Hefe': total * 0.02,
+                'Salz': total * 0.018,
+                'Öl': total * 0.025
+            };
+
+            let html = '';
+            for (const [name, value] of Object.entries(ingredients)) {
+                html += `
+                    <div class="ingredient-item">
+                        <span>${name}</span>
+                        <span>${Math.ceil(value * 100) / 100} kg</span>
+                    </div>
+                `;
+            }
+            html += `
+                <div class="total-item">
+                    <span>Gesamt</span>
+                    <span>${total.toFixed(2)} kg</span>
+                </div>
+            `;
+
+            document.getElementById('dinkelbroetchen-results').innerHTML = html;
+        }
+
+        // Eigene Rezepte Funktionen
+        function editEigenesRezept() {
+            if (!currentRecipe || !customRecipes[currentRecipe]) {
+                alert('Fehler: Kein Rezept ausgewählt!');
+                return;
+            }
+
+            const recipe = customRecipes[currentRecipe];
+            editingRecipeId = currentRecipe;
+
+            // Show form
+            document.getElementById('eigenes-rezept-calc').classList.add('hidden');
+            document.getElementById('rezept-form').classList.remove('hidden');
+            document.getElementById('rezept-form-titel').textContent = 'Rezept bearbeiten: ' + recipe.name;
+
+            // Fill form with existing data
+            document.getElementById('rezept-kategorie').value = recipe.kategorie;
+            document.getElementById('rezept-name').value = recipe.name;
+            document.getElementById('rezept-einheit').value = recipe.einheit;
+            document.getElementById('rezept-gewicht').value = recipe.gewichtProEinheit;
+            document.getElementById('rezept-max').value = recipe.maxAnzahl || 100;
+
+            // Fill ingredients
+            document.getElementById('zutaten-liste').innerHTML = '';
+            for (const [name, menge] of Object.entries(recipe.zutaten)) {
+                addZutatInput();
+                const lastDiv = document.querySelector('#zutaten-liste > div:last-child');
+                lastDiv.querySelector('.zutat-name').value = name;
+                lastDiv.querySelector('.zutat-menge').value = menge;
+            }
+
+            updateGesamtgewicht();
+        }
+
+        function showCreateRecipeForm() {
+            document.getElementById('eigene-rezepte-manager').classList.add('hidden');
+            document.getElementById('rezept-form').classList.remove('hidden');
+            document.getElementById('rezept-form-titel').textContent = 'Rezept erstellen';
+            editingRecipeId = null;
+            
+            // Reset form
+            document.getElementById('rezept-name').value = '';
+            document.getElementById('rezept-einheit').value = '';
+            document.getElementById('rezept-gewicht').value = '';
+            document.getElementById('rezept-max').value = '100';
+            document.getElementById('zutaten-liste').innerHTML = '';
+            document.getElementById('rezept-gesamt-anzeige').textContent = '0.00 kg';
+            
+            // Add initial ingredient fields
+            addZutatInput();
+            addZutatInput();
+        }
+
+        function addZutatInput() {
+            const liste = document.getElementById('zutaten-liste');
+            const id = 'zutat_' + Date.now();
+            
+            const div = document.createElement('div');
+            div.id = id;
+            div.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.3rem; margin-bottom: 0.5rem; align-items: center;';
+            div.innerHTML = `
+                <input type="text" placeholder="Name" class="zutat-name" style="
+                    padding: 0.5rem;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    font-family: inherit;
+                    width: 100%;
+                    box-sizing: border-box;
+                ">
+                <input type="number" step="0.01" placeholder="kg" class="zutat-menge" oninput="updateGesamtgewicht()" style="
+                    padding: 0.5rem;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    font-family: inherit;
+                    width: 100%;
+                    box-sizing: border-box;
+                ">
+                <button onclick="document.getElementById('${id}').remove(); updateGesamtgewicht();" style="
+                    padding: 0.5rem 0.65rem;
+                    background: #DC143C;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    font-size: 1.1rem;
+                    line-height: 1;
+                ">×</button>
+            `;
+            liste.appendChild(div);
+        }
+
+        function updateGesamtgewicht() {
+            const zutatElements = document.querySelectorAll('#zutaten-liste > div');
+            let gesamt = 0;
+            
+            zutatElements.forEach(el => {
+                const mengeInput = parseFloat(el.querySelector('.zutat-menge').value);
+                if (!isNaN(mengeInput) && mengeInput > 0) {
+                    gesamt += mengeInput;
+                }
+            });
+            
+            document.getElementById('rezept-gesamt-anzeige').textContent = gesamt.toFixed(2) + ' kg';
+        }
+
+        function saveEigenesRezept() {
+            const kategorie = document.getElementById('rezept-kategorie').value;
+            const name = document.getElementById('rezept-name').value.trim();
+            const einheit = document.getElementById('rezept-einheit').value.trim();
+            const gewicht = parseFloat(document.getElementById('rezept-gewicht').value);
+            const maxAnzahl = parseInt(document.getElementById('rezept-max').value) || 100;
+
+            if (!name || !einheit || !gewicht) {
+                alert('Bitte alle Felder ausfüllen!');
+                return;
+            }
+
+            // Collect ingredients and calculate total
+            const zutaten = {};
+            let gesamt = 0;
+            const zutatElements = document.querySelectorAll('#zutaten-liste > div');
+            
+            zutatElements.forEach(el => {
+                const nameInput = el.querySelector('.zutat-name').value.trim();
+                const mengeInput = parseFloat(el.querySelector('.zutat-menge').value);
+                
+                if (nameInput && mengeInput > 0) {
+                    zutaten[nameInput] = mengeInput;
+                    gesamt += mengeInput;
+                }
+            });
+
+            if (Object.keys(zutaten).length === 0) {
+                alert('Bitte mindestens eine Zutat hinzufügen!');
+                return;
+            }
+
+            const id = editingRecipeId || 'custom_' + Date.now();
+            
+            // Remove from old category if editing
+            if (editingRecipeId && customRecipes[editingRecipeId]) {
+                const oldKategorie = customRecipes[editingRecipeId].kategorie;
+                recipes[oldKategorie] = recipes[oldKategorie].filter(r => r.id !== editingRecipeId);
+            }
+            
+            customRecipes[id] = {
+                name: name,
+                kategorie: kategorie,
+                einheit: einheit,
+                gewichtProEinheit: gewicht,
+                gesamtgewicht: gesamt, // Automatically calculated
+                maxAnzahl: maxAnzahl,
+                zutaten: zutaten
+            };
+
+            saveCustomRecipes();
+            
+            // Add to appropriate category
+            if (!recipes[kategorie].find(r => r.id === id)) {
+                recipes[kategorie].push({
+                    id: id,
+                    name: name,
+                    active: true,
+                    custom: true
+                });
+                // Sort alphabetically
+                recipes[kategorie].sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            alert(editingRecipeId ? 'Rezept aktualisiert!' : 'Rezept gespeichert!');
+            
+            // Set current recipe before switching category
+            currentRecipe = id;
+            currentCustomRecipe = customRecipes[id];
+            
+            // Hide form
+            document.getElementById('rezept-form').classList.add('hidden');
+            
+            // Update category selection if category changed
+            if (currentCategory !== kategorie) {
+                currentCategory = kategorie;
+                // Update category buttons
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    const btnCategory = btn.dataset.category;
+                    if (btnCategory === kategorie) {
+                        btn.classList.add('active');
+                        btn.style.background = '#9FA8DA';
+                    } else {
+                        btn.style.background = '#C5CAE9';
+                    }
+                });
+            }
+            
+            // Update recipe selector
+            const selector = document.getElementById('recipeSelector');
+            const buttonContainer = document.getElementById('recipe-buttons');
+            const categoryNames = {
+                brot: 'Brot',
+                broetchen: 'Brötchen',
+                plunder: 'Plunderteig',
+                kuchen: 'Kuchen'
+            };
+            
+            document.getElementById('category-title').textContent = categoryNames[kategorie];
+            selector.classList.remove('hidden');
+            
+            // Update recipe buttons
+            buttonContainer.innerHTML = '';
+            recipes[kategorie].forEach(recipe => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.onclick = () => selectRecipe(recipe.id);
+                btn.disabled = !recipe.active;
+                btn.style.opacity = recipe.active ? '1' : '0.5';
+                btn.innerHTML = `<span style="font-size: 1.1rem;">${recipe.name}</span>`;
+                if (recipe.id === id) {
+                    btn.style.background = '#9FA8DA';
+                }
+                buttonContainer.appendChild(btn);
+            });
+            
+            // Show the recipe calculator
+            editingRecipeId = null;
+            showEigenesRezeptCalc();
+        }
+
+        function cancelRezeptForm() {
+            document.getElementById('rezept-form').classList.add('hidden');
+            
+            // If we were editing, go back to the recipe
+            if (editingRecipeId && customRecipes[editingRecipeId]) {
+                currentRecipe = editingRecipeId;
+                currentCustomRecipe = customRecipes[editingRecipeId];
+                showEigenesRezeptCalc();
+            } else {
+                document.getElementById('eigene-rezepte-manager').classList.remove('hidden');
+            }
+            
+            editingRecipeId = null;
+        }
+
+        function showEigenesRezeptCalc() {
+            document.getElementById('eigene-rezepte-manager').classList.add('hidden');
+            document.getElementById('rezept-form').classList.add('hidden');
+            document.getElementById('recipeSelector').classList.remove('hidden');
+            
+            const calc = document.getElementById('eigenes-rezept-calc');
+            calc.classList.remove('hidden');
+            
+            // Set to uniform brown color
+            const color = '#8B7355';
+            
+            // Calculator border
+            calc.style.borderLeftColor = color;
+            
+            // Heading
+            const h2 = calc.querySelector('h2');
+            if (h2) h2.style.color = color;
+            
+            // Input section
+            const inputSection = calc.querySelector('.input-section');
+            if (inputSection) {
+                inputSection.style.background = `${color}22`;
+                inputSection.style.borderColor = `${color}88`;
+            }
+            
+            // Results box
+            const resultsBox = calc.querySelector('.results-box');
+            if (resultsBox) {
+                resultsBox.style.background = `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`;
+            }
+            
+            // Slider value badge
+            const sliderValue = calc.querySelector('.slider-value');
+            if (sliderValue) {
+                sliderValue.style.background = color;
+            }
+            
+            document.getElementById('eigenes-rezept-titel').textContent = currentCustomRecipe.name;
+            document.getElementById('eigenes-rezept-einheit-label').textContent = 'Anzahl ' + currentCustomRecipe.einheit;
+            
+            // Set slider max from recipe
+            const slider = document.getElementById('eigenes-anzahl');
+            slider.max = currentCustomRecipe.maxAnzahl || 100;
+            slider.value = 0;
+            
+            calculateEigenesRezept();
+            
+            // Scroll to calculator
+            setTimeout(() => {
+                calc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function calculateEigenesRezept() {
+            if (!currentCustomRecipe) return;
+            
+            const anzahl = parseFloat(document.getElementById('eigenes-anzahl').value);
+            document.getElementById('eigenes-anzahl-value').textContent = anzahl;
+            
+            const total = anzahl * currentCustomRecipe.gewichtProEinheit;
+            const ratio = total / currentCustomRecipe.gesamtgewicht;
+            
+            let html = '';
+            for (const [name, baseMenge] of Object.entries(currentCustomRecipe.zutaten)) {
+                const menge = baseMenge * ratio;
+                html += `
+                    <div class="ingredient-item">
+                        <span>${name}</span>
+                        <span>${Math.ceil(menge * 100) / 100} kg</span>
+                    </div>
+                `;
+            }
+            html += `
+                <div class="total-item">
+                    <span>Gesamt</span>
+                    <span>${total.toFixed(2)} kg</span>
+                </div>
+            `;
+            
+            document.getElementById('eigenes-rezept-results').innerHTML = html;
+            
+            // Update slider background
+            const slider = document.getElementById('eigenes-anzahl');
+            const percentage = (anzahl / slider.max) * 100;
+            slider.style.background = `linear-gradient(to right, #4A90E2 0%, #4A90E2 ${percentage}%, #DEB887 ${percentage}%, #DEB887 100%)`;
+        }
+
+        // Export/Import Funktionen
+        function exportAllRecipes() {
+            if (Object.keys(customRecipes).length === 0) {
+                alert('Keine Rezepte zum Exportieren vorhanden!');
+                return;
+            }
+
+            const exportData = {
+                exportDate: new Date().toISOString().split('T')[0],
+                version: '1.0',
+                recipes: customRecipes
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BAECKEREI_alle-rezepte_${exportData.exportDate}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showExportSuccess('Alle Rezepte exportiert!');
+        }
+
+        function exportCurrentRecipe() {
+            if (!currentCustomRecipe || !currentRecipe) {
+                alert('Kein Rezept ausgewählt!');
+                return;
+            }
+
+            const exportData = {
+                exportDate: new Date().toISOString().split('T')[0],
+                version: '1.0',
+                recipes: {
+                    [currentRecipe]: currentCustomRecipe
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeName = currentCustomRecipe.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            a.download = `BAECKEREI_${safeName}_${exportData.exportDate}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showExportSuccess(currentCustomRecipe.name + ' exportiert!');
+        }
+
+        function importRecipes() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    
+                    if (!importData.recipes || typeof importData.recipes !== 'object') {
+                        alert('Ungültige Datei! Bitte wähle eine exportierte Rezept-Datei.');
+                        return;
+                    }
+
+                    // Ask user how to import
+                    const mode = confirm(
+                        'Wie möchtest du importieren?\n\n' +
+                        'OK = Hinzufügen (bestehende Rezepte behalten)\n' +
+                        'Abbrechen = Ersetzen (alle bestehenden löschen)'
+                    );
+
+                    if (!mode) {
+                        // Replace mode
+                        if (!confirm('Wirklich ALLE bestehenden Rezepte löschen und ersetzen?')) {
+                            event.target.value = '';
+                            return;
+                        }
+                        // Clear existing recipes from categories
+                        for (const cat of Object.keys(recipes)) {
+                            if (cat !== 'eigene') {
+                                recipes[cat] = recipes[cat].filter(r => !r.custom);
+                            }
+                        }
+                        customRecipes = {};
+                    }
+
+                    // Import recipes
+                    let importCount = 0;
+                    for (const [id, recipe] of Object.entries(importData.recipes)) {
+                        // Validate recipe
+                        if (recipe.name && recipe.kategorie && recipe.zutaten) {
+                            const newId = mode ? 'custom_' + Date.now() + '_' + importCount : id;
+                            customRecipes[newId] = recipe;
+                            
+                            // Add to category
+                            const cat = recipe.kategorie || 'brot';
+                            if (recipes[cat] && !recipes[cat].find(r => r.id === newId)) {
+                                recipes[cat].push({
+                                    id: newId,
+                                    name: recipe.name,
+                                    active: true,
+                                    custom: true
+                                });
+                            }
+                            importCount++;
+                        }
+                    }
+
+                    saveCustomRecipes();
+                    
+                    alert(`✅ ${importCount} Rezept(e) erfolgreich importiert!`);
+                    
+                    // Refresh view
+                    if (currentCategory === 'eigene') {
+                        selectCategory('eigene');
+                    }
+
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Fehler beim Importieren! Bitte überprüfe die Datei.');
+                }
+                
+                // Reset file input
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function showExportSuccess(message) {
+            // Create temporary success message
+            const msg = document.createElement('div');
+            msg.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                color: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                z-index: 1000;
+                text-align: center;
+                max-width: 90%;
+                animation: slideIn 0.3s ease;
+            `;
+            msg.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">${message}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9; line-height: 1.5;">
+                    💡 Tipp: Erstelle einen Ordner<br>
+                    "Baeckerei-Rezepte" in deinen Downloads<br>
+                    und verschiebe die Datei dorthin!
+                </div>
+            `;
+            document.body.appendChild(msg);
+
+            setTimeout(() => {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => document.body.removeChild(msg), 300);
+            }, 4000);
+        }
+
+        function deleteEigenesRezept() {
+            console.log('Delete aufgerufen - currentRecipe:', currentRecipe);
+            console.log('customRecipes:', customRecipes);
+            
+            if (!currentRecipe || !customRecipes[currentRecipe]) {
+                alert('Fehler: Kein Rezept ausgewählt!\ncurrentRecipe: ' + currentRecipe);
+                return;
+            }
+            
+            if (!confirm('Möchtest du dieses Rezept wirklich löschen?')) return;
+            
+            const kategorie = customRecipes[currentRecipe].kategorie;
+            const rezeptName = customRecipes[currentRecipe].name;
+            
+            console.log('Lösche Rezept:', rezeptName, 'aus Kategorie:', kategorie);
+            
+            delete customRecipes[currentRecipe];
+            saveCustomRecipes();
+            
+            // Remove from category
+            recipes[kategorie] = recipes[kategorie].filter(r => r.id !== currentRecipe);
+            
+            alert(`✅ "${rezeptName}" wurde gelöscht!`);
+            
+            selectCategory(kategorie);
+        }
+
+        // Tagesplanung Funktionen
+        function showTagesplanung() {
+            document.getElementById('tagesplanung-datum').value = today;
+            updateTagesplanungListe();
+        }
+
+        function showProduktAuswahl() {
+            document.getElementById('tagesplanung-view').classList.add('hidden');
+            document.getElementById('produkt-auswahl-modal').classList.remove('hidden');
+            
+            // Fill recipe dropdown with all available recipes
+            const select = document.getElementById('produkt-rezept-select');
+            select.innerHTML = '';
+            
+            // Add standard recipes
+            const standardRecipes = [
+                { id: 'roggenbrot', name: 'Roggenbrot (Kästen)', kategorie: 'brot' },
+                { id: 'platzteig', name: 'Platzteig', kategorie: 'plunder' },
+                { id: 'dinkelbroetchen', name: 'Dinkelbrötchen', kategorie: 'broetchen' }
+            ];
+            
+            standardRecipes.forEach(recipe => {
+                const option = document.createElement('option');
+                option.value = recipe.id;
+                option.textContent = recipe.name;
+                select.appendChild(option);
+            });
+            
+            // Add custom recipes
+            for (const [id, recipe] of Object.entries(customRecipes)) {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = recipe.name + ' (Eigenes Rezept)';
+                select.appendChild(option);
+            }
+        }
+
+        function closeProduktAuswahl() {
+            document.getElementById('produkt-auswahl-modal').classList.add('hidden');
+            document.getElementById('tagesplanung-view').classList.remove('hidden');
+        }
+
+        function addProduktToTagesplanung() {
+            const rezeptId = document.getElementById('produkt-rezept-select').value;
+            const anzahl = parseInt(document.getElementById('produkt-anzahl').value);
+            
+            if (!anzahl || anzahl <= 0) {
+                alert('Bitte gültige Anzahl eingeben!');
+                return;
+            }
+            
+            // Get recipe name
+            let rezeptName = '';
+            let einheit = '';
+            
+            if (rezeptId === 'roggenbrot') {
+                rezeptName = 'Roggenbrot';
+                einheit = 'Kästen';
+            } else if (rezeptId === 'platzteig') {
+                rezeptName = 'Platzteig';
+                einheit = 'Stück';
+            } else if (rezeptId === 'dinkelbroetchen') {
+                rezeptName = 'Dinkelbrötchen';
+                einheit = 'Stück';
+            } else if (customRecipes[rezeptId]) {
+                rezeptName = customRecipes[rezeptId].name;
+                einheit = customRecipes[rezeptId].einheit;
+            }
+            
+            tagesplanung.push({
+                id: 'tp_' + Date.now(),
+                rezeptId: rezeptId,
+                rezeptName: rezeptName,
+                anzahl: anzahl,
+                einheit: einheit,
+                checked: false
+            });
+            
+            updateTagesplanungListe();
+            closeProduktAuswahl();
+        }
+
+        function updateTagesplanungListe() {
+            const liste = document.getElementById('tagesplanung-liste');
+            
+            if (tagesplanung.length === 0) {
+                liste.innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">Noch keine Produkte hinzugefügt</p>';
+                return;
+            }
+            
+            let html = '<div style="display: grid; gap: 0.5rem;">';
+            tagesplanung.forEach(item => {
+                html += `
+                    <div style="
+                        background: white;
+                        padding: 0.75rem;
+                        border-radius: 8px;
+                        border: 2px solid ${item.checked ? '#4CAF50' : '#FFE0E0'};
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; flex: 1; cursor: pointer;">
+                            <input type="checkbox" ${item.checked ? 'checked' : ''} 
+                                onchange="toggleProduktCheck('${item.id}')"
+                                style="width: 20px; height: 20px; cursor: pointer;">
+                            <span style="${item.checked ? 'text-decoration: line-through; opacity: 0.6;' : ''}">
+                                <strong>${item.anzahl}</strong> ${item.einheit} ${item.rezeptName}
+                            </span>
+                        </label>
+                        <button onclick="removeProdukt('${item.id}')" style="
+                            background: #DC143C;
+                            color: white;
+                            border: none;
+                            padding: 0.25rem 0.5rem;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">×</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            liste.innerHTML = html;
+        }
+
+        function toggleProduktCheck(id) {
+            const item = tagesplanung.find(p => p.id === id);
+            if (item) {
+                item.checked = !item.checked;
+                updateTagesplanungListe();
+            }
+        }
+
+        function removeProdukt(id) {
+            tagesplanung = tagesplanung.filter(p => p.id !== id);
+            updateTagesplanungListe();
+        }
+
+        function clearTagesplanung() {
+            if (!confirm('Wirklich alle Produkte entfernen?')) return;
+            tagesplanung = [];
+            updateTagesplanungListe();
+        }
+
+        function showZusammenfassung() {
+            if (tagesplanung.length === 0) {
+                alert('Bitte erst Produkte hinzufügen!');
+                return;
+            }
+            
+            document.getElementById('tagesplanung-view').classList.add('hidden');
+            document.getElementById('zusammenfassung-modal').classList.remove('hidden');
+            
+            // Calculate totals
+            const zutatenGesamt = {};
+            let gesamtgewicht = 0;
+            
+            tagesplanung.forEach(item => {
+                const rezeptId = item.rezeptId;
+                const anzahl = item.anzahl;
+                let zutaten = {};
+                let gewicht = 0;
+                
+                if (rezeptId === 'roggenbrot') {
+                    gewicht = anzahl * 3.333;
+                    const total = gewicht;
+                    zutaten = {
+                        'WM550': total * (44/180),
+                        'RM1150': total * (45/180),
+                        'Wasser': total * (59/180),
+                        'Salz': total * (2.4/180),
+                        'BAS-T': total * (2.4/180),
+                        'Staback': total * (1/180),
+                        'Frische Profi': total * (1/180),
+                        'Hefe': total * (5/180),
+                        'Sauerteig': total * (20/180)
+                    };
+                } else if (rezeptId === 'dinkelbroetchen') {
+                    gewicht = anzahl * 0.08;
+                    zutaten = {
+                        'DM630': gewicht * 0.625,
+                        'Wasser': gewicht * 0.35,
+                        'Hefe': gewicht * 0.02,
+                        'Salz': gewicht * 0.018,
+                        'Öl': gewicht * 0.025
+                    };
+                } else if (customRecipes[rezeptId]) {
+                    const recipe = customRecipes[rezeptId];
+                    gewicht = anzahl * recipe.gewichtProEinheit;
+                    const ratio = gewicht / recipe.gesamtgewicht;
+                    for (const [name, baseMenge] of Object.entries(recipe.zutaten)) {
+                        zutaten[name] = baseMenge * ratio;
+                    }
+                }
+                
+                gesamtgewicht += gewicht;
+                
+                // Add to totals
+                for (const [zutat, menge] of Object.entries(zutaten)) {
+                    zutatenGesamt[zutat] = (zutatenGesamt[zutat] || 0) + menge;
+                }
+            });
+            
+            // Display summary
+            const datum = document.getElementById('tagesplanung-datum').value;
+            document.getElementById('zusammenfassung-datum').textContent = datum || today;
+            document.getElementById('zusammenfassung-produkte').textContent = tagesplanung.length + ' Positionen';
+            document.getElementById('zusammenfassung-gewicht').textContent = gesamtgewicht.toFixed(2) + ' kg';
+            
+            // Display production list
+            let produktionHtml = '<div style="display: grid; gap: 0.5rem;">';
+            tagesplanung.forEach(item => {
+                produktionHtml += `
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.75rem;
+                        background: ${item.checked ? '#E8F5E9' : '#FFF9E6'};
+                        border-radius: 6px;
+                        border: 2px solid ${item.checked ? '#4CAF50' : '#FFC107'};
+                    ">
+                        <span style="${item.checked ? 'text-decoration: line-through;' : ''}">
+                            ${item.checked ? '☑' : '☐'} <strong>${item.rezeptName}</strong>
+                        </span>
+                        <span style="font-weight: bold; color: ${item.checked ? '#4CAF50' : '#FF8C00'};">
+                            ${item.anzahl} ${item.einheit}
+                        </span>
+                    </div>
+                `;
+            });
+            produktionHtml += '</div>';
+            document.getElementById('zusammenfassung-produktion').innerHTML = produktionHtml;
+            
+            // Display ingredients
+            let zutatenHtml = '<div style="display: grid; gap: 0.5rem;">';
+            for (const [zutat, menge] of Object.entries(zutatenGesamt)) {
+                zutatenHtml += `
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem;
+                        background: #F0FFF0;
+                        border-radius: 6px;
+                        border: 1px solid #90EE90;
+                    ">
+                        <span>${zutat}</span>
+                        <span style="font-weight: bold;">${Math.ceil(menge * 100) / 100} kg</span>
+                    </div>
+                `;
+            }
+            zutatenHtml += '</div>';
+            document.getElementById('zusammenfassung-zutaten').innerHTML = zutatenHtml;
+        }
+
+        function closeZusammenfassung() {
+            document.getElementById('zusammenfassung-modal').classList.add('hidden');
+            document.getElementById('tagesplanung-view').classList.remove('hidden');
+        }
+
+        function exportZusammenfassung() {
+            const datum = document.getElementById('tagesplanung-datum').value || today;
+            
+            let text = `TAGESPLANUNG - ${datum}\n`;
+            text += `${'='.repeat(50)}\n\n`;
+            
+            text += `TAGESPRODUKTION:\n`;
+            text += `${'-'.repeat(50)}\n`;
+            tagesplanung.forEach(item => {
+                text += `${item.checked ? '☑' : '☐'} ${item.rezeptName}: ${item.anzahl} ${item.einheit}\n`;
+            });
+            
+            text += `\n${'='.repeat(50)}\n`;
+            text += `Gesamtgewicht: ${document.getElementById('zusammenfassung-gewicht').textContent}\n`;
+            text += `${'='.repeat(50)}\n\n`;
+            
+            text += `EINKAUFSLISTE:\n`;
+            text += `${'-'.repeat(50)}\n`;
+            const zutatenDiv = document.getElementById('zusammenfassung-zutaten');
+            const zutatenItems = zutatenDiv.querySelectorAll('div > div');
+            zutatenItems.forEach(item => {
+                const spans = item.querySelectorAll('span');
+                text += `• ${spans[0].textContent}: ${spans[1].textContent}\n`;
+            });
+            
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BAECKEREI_tagesplanung_${datum}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showExportSuccess('Tagesplanung exportiert!');
+        }
+
+        // Language Functions
+        function changeLanguage() {
+            currentLanguage = document.getElementById('language-select').value;
+            localStorage.setItem('baeckerei_language', currentLanguage);
+            
+            // Add/remove RTL class for Farsi
+            if (currentLanguage === 'fa') {
+                document.body.classList.add('rtl');
+            } else {
+                document.body.classList.remove('rtl');
+            }
+            
+            updateUILanguage();
+        }
+
+        function t(key) {
+            return translations[currentLanguage][key] || translations.de[key] || key;
+        }
+
+        function updateUILanguage() {
+            const lang = currentLanguage;
+            
+            // Header
+            document.querySelector('.header h1').textContent = t('title');
+            document.querySelector('.header p').textContent = t('subtitle');
+            
+            // Category buttons text
+            const categoryTexts = {
+                'tagesplanung': t('tagesplanung'),
+                'brot': t('brot'),
+                'broetchen': t('broetchen'),
+                'plunder': t('plunder'),
+                'kuchen': t('kuchen'),
+                'eigene': t('eigene')
+            };
+            
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                const cat = btn.dataset.category;
+                if (categoryTexts[cat]) {
+                    const textSpan = btn.querySelector('span:last-child');
+                    if (textSpan) textSpan.textContent = categoryTexts[cat];
+                }
+            });
+            
+            // Reload current view to update texts
+            if (currentCategory) {
+                selectCategory(currentCategory);
+            }
+        }
+
+        // Load saved language
+        const savedLanguage = localStorage.getItem('baeckerei_language');
+        if (savedLanguage) {
+            currentLanguage = savedLanguage;
+            document.getElementById('language-select').value = savedLanguage;
+            if (savedLanguage === 'fa') {
+                document.body.classList.add('rtl');
+            }
+        }
+
+        // Initialize
+        selectCategory('brot');
+        
+        // Register Service Worker for PWA
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').classList.remove('hidden');
+        });
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('App installed');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('install-btn').classList.add('hidden');
+                });
+            }
+        }
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('App installed successfully');
+            document.getElementById('install-btn').classList.add('hidden');
+        });
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
